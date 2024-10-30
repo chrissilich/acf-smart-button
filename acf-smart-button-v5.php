@@ -58,7 +58,7 @@ class acf_field_smart_button extends acf_field {
 		);
 
 		// do not delete!
-    parent::__construct();
+		parent::__construct();
 
 	}
 
@@ -164,32 +164,38 @@ class acf_field_smart_button extends acf_field {
 					<div class="acf-field acf-field-<?php echo $field_raw_key; ?> acf-field-post-object" data-name="<?php echo $field['_name']; ?>[post_id]" data-type="post_object" data-key="<?php echo $field['key']; ?>">
 						<div class="acf-input">
 						<?php
-              // Get post types from field settings, fall back to all public post types
-              $post_types = $field['post_type'] ? $field['post_type'] : get_post_types([ 'public' => true ]);
-              $posts_for_select = [];
+							// Get post types from field settings, fall back to all public post types
+							$post_types = $field['post_type'] ? $field['post_type'] : get_post_types([ 'public' => true ]);
 
-              // Fetch all posts for each post type
-              foreach ($post_types as $key => $post_type) {
-                $posts_for_select[$post_type] = get_posts([
-                  'post_type' => $post_type,
-                  'posts_per_page' => -1,
-                  'orderby' => 'title',
-                  'order' => 'ASC'
-                ]);
-              }
+							// Remove 'attachment' post type
+							unset($post_types['attachment']);
+
+							// Prepare array for select field
+							$posts_for_select = [];
+
+							// Fetch all posts for each post type
+							foreach ($post_types as $key => $post_type) {
+								$posts_for_select[$post_type] = get_posts([
+									'post_type' => $post_type,
+									'posts_per_page' => -1,
+									'orderby' => 'title',
+									'order' => 'ASC',
+									'publish' => true,
+								]);
+							}
 						?>
 							<select
 								name="<?php echo $field_name . '[post_id]'; ?>"
 								value="<?php echo $field['value']['post_id']; ?>"
 							>
-                <?php foreach ($posts_for_select as $post_type => $posts) : ?>
-                  <optgroup label="<?php echo ucwords($post_type); ?>">
-                    <?php foreach ($posts as $post) : ?>
-                      <option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $post->post_title; ?></option>
-                    <?php endforeach; ?>
-                  </optgroup>
-                <?php endforeach; ?>
-              </select>
+								<?php foreach ($posts_for_select as $post_type => $posts) : ?>
+									<optgroup label="<?php echo ucwords($post_type); ?>">
+										<?php foreach ($posts as $post) : ?>
+											<option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $post->post_title; ?></option>
+										<?php endforeach; ?>
+									</optgroup>
+								<?php endforeach; ?>
+							</select>
 						</div>
 					</div>
 				</td>
@@ -200,8 +206,8 @@ class acf_field_smart_button extends acf_field {
 							<?php
 								$switcher_id = $field['id'] . '[use_external_switcher]';
 							?>
-						  <input type="checkbox" name="<?php echo $field_name; ?>[use_external]" class="button-link-switch-checkbox" id="<?php echo $switcher_id; ?>"<?php if( $field['value']['use_external'] ) { echo ' checked'; } ?>>
-						  <label class="button-link-switch-label" for="<?php echo $switcher_id; ?>"></label>
+							<input type="checkbox" name="<?php echo $field_name; ?>[use_external]" class="button-link-switch-checkbox" id="<?php echo $switcher_id; ?>"<?php if( $field['value']['use_external'] ) { echo ' checked'; } ?>>
+							<label class="button-link-switch-label" for="<?php echo $switcher_id; ?>"></label>
 						</div>
 					</div>
 				</td>
@@ -322,52 +328,52 @@ class acf_field_smart_button extends acf_field {
 	function validate_value( $valid, $value, $field, $input ) {
 
 		// store use_external for later use
-    $use_external = array_key_exists( 'use_external', $value ) ? true : false;
+		$use_external = array_key_exists( 'use_external', $value ) ? true : false;
 
 		// unset use_external and target from value so we can easily check for empty $value
-    unset( $value['use_external'] );
-    unset( $value['target'] );
+		unset( $value['use_external'] );
+		unset( $value['target'] );
 
-    // not required and all fields are empty, so we're good
-    if( !$field['required'] && !$value ) {
-      return true;
-    }
+		// not required and all fields are empty, so we're good
+		if( !$field['required'] && !$value ) {
+			return true;
+		}
 
-    // not required, but let's make sure corresponding fields are filled so we don't have partial data
-    if (!$field['required']) {
+		// not required, but let's make sure corresponding fields are filled so we don't have partial data
+		if (!$field['required']) {
 
-      // link is set but no text
-      if( ( $value['link'] || $value['post_id'] ) && !$value['text'] ) {
-        $valid = __('Text is required with a link. Please either add text or remove the link.', 'acf-smart-button');
-      }
+			// link is set but no text
+			if( ( $value['link'] || $value['post_id'] ) && !$value['text'] ) {
+				$valid = __('Text is required with a link. Please either add text or remove the link.', 'acf-smart-button');
+			}
 
-      // text is present but no link set
-      if ( $value['text'] && ( ( $use_external && !$value['link'] ) || ( !$use_external && !$value['post_id'] ) ) ) {
-        $valid = __('A link is required with text. Please either add a link or remove the text.', 'acf-smart-button');
-      }
+			// text is present but no link set
+			if ( $value['text'] && ( ( $use_external && !$value['link'] ) || ( !$use_external && !$value['post_id'] ) ) ) {
+				$valid = __('A link is required with text. Please either add a link or remove the text.', 'acf-smart-button');
+			}
 
-      // field is required
-    } else {
+			// field is required
+		} else {
 
-      // no text or link set
-      if ( !$value['text'] && $value['post_id'] && !$value['link'] ) {
-        $valid = __('Both text and link are required', 'acf-smart-button');
-      }
+			// no text or link set
+			if ( !$value['text'] && $value['post_id'] && !$value['link'] ) {
+				$valid = __('Both text and link are required', 'acf-smart-button');
+			}
 
-      // link is set but no text
-      if( ( $value['link'] || $value['post_id'] ) && !$value['text'] ) {
-        $valid = __('Text is required', 'acf-smart-button');
-      }
+			// link is set but no text
+			if( ( $value['link'] || $value['post_id'] ) && !$value['text'] ) {
+				$valid = __('Text is required', 'acf-smart-button');
+			}
 
-      // text is present but no link set
-      if ( $value['text'] && ( ( $use_external && !$value['link'] ) || ( !$use_external && !$value['post_id'] ) ) ) {
-        $valid = __('A link is required', 'acf-smart-button');
-      }
+			// text is present but no link set
+			if ( $value['text'] && ( ( $use_external && !$value['link'] ) || ( !$use_external && !$value['post_id'] ) ) ) {
+				$valid = __('A link is required', 'acf-smart-button');
+			}
 
-    }
+		}
 
-    // return
-    return $valid;
+		// return
+		return $valid;
 
 	}
 }
