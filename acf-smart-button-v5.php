@@ -164,16 +164,32 @@ class acf_field_smart_button extends acf_field {
 					<div class="acf-field acf-field-<?php echo $field_raw_key; ?> acf-field-post-object" data-name="<?php echo $field['_name']; ?>[post_id]" data-type="post_object" data-key="<?php echo $field['key']; ?>">
 						<div class="acf-input">
 						<?php
-							// $types = array('post', 'page');
-							@do_action('acf/render_field/type=post_object', array(
-								'name' => $field_name . '[post_id]',
-								'value' => $field['value']['post_id'],
-								// 'post_type' => $types, // Removed so the selection isn't restricted to just posts and pages
-								'allow_null' => 1
-								//'_name' => 'acf[' . $field['_name'] . '][post_id]',
-								//'key' => 'acf[' . $field['key'] . '][post_id]'
-							));
+              // Get post types from field settings, fall back to all public post types
+              $post_types = $field['post_type'] ? $field['post_type'] : get_post_types([ 'public' => true ]);
+              $posts_for_select = [];
+
+              // Fetch all posts for each post type
+              foreach ($post_types as $key => $post_type) {
+                $posts_for_select[$post_type] = get_posts([
+                  'post_type' => $post_type,
+                  'posts_per_page' => -1,
+                  'orderby' => 'title',
+                  'order' => 'ASC'
+                ]);
+              }
 						?>
+							<select
+								name="<?php echo $field_name . '[post_id]'; ?>"
+								value="<?php echo $field['value']['post_id']; ?>"
+							>
+                <?php foreach ($posts_for_select as $post_type => $posts) : ?>
+                  <optgroup label="<?php echo ucwords($post_type); ?>">
+                    <?php foreach ($posts as $post) : ?>
+                      <option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $post->post_title; ?></option>
+                    <?php endforeach; ?>
+                  </optgroup>
+                <?php endforeach; ?>
+              </select>
 						</div>
 					</div>
 				</td>
@@ -186,6 +202,7 @@ class acf_field_smart_button extends acf_field {
 							?>
 						  <input type="checkbox" name="<?php echo $field_name; ?>[use_external]" class="button-link-switch-checkbox" id="<?php echo $switcher_id; ?>"<?php if( $field['value']['use_external'] ) { echo ' checked'; } ?>>
 						  <label class="button-link-switch-label" for="<?php echo $switcher_id; ?>"></label>
+						</div>
 					</div>
 				</td>
 			</tr>

@@ -25,6 +25,7 @@
 
 .acf-smart-button-fields .acf-field-post-object, .acf-smart-button-fields input.external {
   min-width: 200px;
+  max-width: 350px;
   padding-left: 25px;
   margin: 0;
 }
@@ -45,6 +46,7 @@
 
 .acf-smart-button-fields td {
   padding-right: 10px;
+  width: 33%;
 }
 
 .button-link-switch-text {

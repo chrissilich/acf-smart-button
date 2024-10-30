@@ -6,7 +6,8 @@
     var $checkbox = $el.find('.button-link-switch-checkbox'),
       $internal = $el.find('.internal'),
       $external = $el.find('.external'),
-      $switcherLabels = $el.find('.switcher-container label');
+      $switcherLabels = $el.find('.switcher-container label'),
+      $internalSelect = $internal.find('select');
 
     // listen to checkbox change
     $checkbox.change(function() {
@@ -21,6 +22,8 @@
     // trigger change function on init to respect current state (do not trigger change event as this provokes browser alert on window close)
     helperCheckboxChange($checkbox, $internal, $external);
 
+    // Initialize select2 on the manually created select field for internal links
+    $internalSelect.select2();
   }
 
   function helperCheckboxChange($self, $internal, $external) {
