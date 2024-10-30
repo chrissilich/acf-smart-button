@@ -189,6 +189,7 @@ class acf_field_smart_button extends acf_field {
 								value="<?php echo $field['value']['post_id']; ?>"
 							>
 								<?php foreach ($posts_for_select as $post_type => $posts) : ?>
+									<option value=""><em>No link selected</em></option>
 									<optgroup label="<?php echo ucwords($post_type); ?>">
 										<?php foreach ($posts as $post) : ?>
 											<option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $post->post_title; ?></option>
