@@ -6,7 +6,8 @@
     var $checkbox = $el.find('.button-link-switch-checkbox'),
       $internal = $el.find('.internal'),
       $external = $el.find('.external'),
-      $switcherLabels = $el.find('.switcher-container label');
+      $switcherLabels = $el.find('.switcher-container label'),
+      $internalSelect = $internal.find('select');
 
     // listen to checkbox change
     $checkbox.change(function() {
@@ -21,6 +22,36 @@
     // trigger change function on init to respect current state (do not trigger change event as this provokes browser alert on window close)
     helperCheckboxChange($checkbox, $internal, $external);
 
+    // Initialize select2 on the manually created select field for internal links
+    intitializeInternalSelect($internalSelect);
+  }
+
+  function intitializeInternalSelect($internalSelect) {
+
+    const queryString = $internalSelect.data('querystring')
+    const API_URL = '/wp-json/acf-smart-button/v1/posts/?'
+    const wp_nonce = $internalSelect.data('nonce')
+
+    $internalSelect.select2({
+      ajax: {
+        url: API_URL + queryString,
+        dataType: 'json',
+        headers: {
+          'X-WP-Nonce': wp_nonce
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(function (item) {
+              console.log(item.title);
+              return {
+                id: item.id,
+                text: $('<span>'+item.title+'</span>').text(),
+              }
+            }
+          )};
+        }
+      }
+    });
   }
 
   function helperCheckboxChange($self, $internal, $external) {
