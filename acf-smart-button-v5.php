@@ -328,6 +328,10 @@ class acf_field_smart_button extends acf_field {
 	*/
 	function validate_value( $valid, $value, $field, $input ) {
 
+		if ( ! is_array( $value ) ) {
+			return $valid;
+		}
+
 		// store use_external for later use
 		$use_external = array_key_exists( 'use_external', $value ) ? true : false;
 
