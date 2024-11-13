@@ -42,9 +42,10 @@
         processResults: function (data) {
           return {
             results: data.map(function (item) {
+              console.log(item.title);
               return {
                 id: item.id,
-                text: item.title
+                text: $('<span>'+item.title+'</span>')
               }
             }
           )};
