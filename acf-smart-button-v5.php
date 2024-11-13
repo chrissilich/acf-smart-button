@@ -175,13 +175,19 @@ class acf_field_smart_button extends acf_field {
 
 							// Fetch all posts for each post type
 							foreach ($post_types as $key => $post_type) {
-								$posts_for_select[$post_type] = get_posts([
+								$query_args = [
 									'post_type' => $post_type,
 									'posts_per_page' => -1,
 									'orderby' => 'title',
 									'order' => 'ASC',
-									'publish' => true,
-								]);
+									'post_status' => ['publish'],
+								];
+
+								// This plugin used to use the ACF Post Object field here, so in order to maintain backward
+								// compatibility, we need to apply the same filters that the ACF post_object field would apply
+								$query_args = apply_filters('acf/fields/post_object/query', $query_args, $field, "");
+
+                $posts_for_select[$post_type] = get_posts($query_args);
 							}
 						?>
 							<select
@@ -191,9 +197,14 @@ class acf_field_smart_button extends acf_field {
 								<?php foreach ($posts_for_select as $post_type => $posts) : ?>
 									<option value=""><em>No link selected</em></option>
 									<optgroup label="<?php echo ucwords($post_type); ?>">
-										<?php foreach ($posts as $post) : ?>
-											<option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $post->post_title; ?></option>
+
+										<?php foreach ($posts as $post) :
+											// This plugin used to use the ACF post_object field here, so in order to maintain backward
+											// compatibility, we need to apply the same filters that the ACF post_object field would apply
+											$title = apply_filters('acf/fields/post_object/result', $post->post_title, $post, [], ""); ?>
+											<option value="<?php echo $post->ID; ?>"<?php echo $field['value']['post_id'] == $post->ID ? ' selected' : ''; ?>><?php echo $title; ?></option>
 										<?php endforeach; ?>
+
 									</optgroup>
 								<?php endforeach; ?>
 							</select>
@@ -327,10 +338,6 @@ class acf_field_smart_button extends acf_field {
 	*  @return $valid
 	*/
 	function validate_value( $valid, $value, $field, $input ) {
-
-		if ( ! is_array( $value ) ) {
-			return $valid;
-		}
 
 		// store use_external for later use
 		$use_external = array_key_exists( 'use_external', $value ) ? true : false;
