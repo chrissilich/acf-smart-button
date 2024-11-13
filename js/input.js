@@ -23,7 +23,34 @@
     helperCheckboxChange($checkbox, $internal, $external);
 
     // Initialize select2 on the manually created select field for internal links
-    $internalSelect.select2();
+    intitializeInternalSelect($internalSelect);
+  }
+
+  function intitializeInternalSelect($internalSelect) {
+
+    const queryString = $internalSelect.data('querystring')
+    const API_URL = '/wp-json/acf-smart-button/v1/posts/?'
+    const wp_nonce = $internalSelect.data('nonce')
+
+    $internalSelect.select2({
+      ajax: {
+        url: API_URL + queryString,
+        dataType: 'json',
+        headers: {
+          'X-WP-Nonce': wp_nonce
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(function (item) {
+              return {
+                id: item.id,
+                text: item.title
+              }
+            }
+          )};
+        }
+      }
+    });
   }
 
   function helperCheckboxChange($self, $internal, $external) {
