@@ -45,7 +45,7 @@
               console.log(item.title);
               return {
                 id: item.id,
-                text: $('<span>'+item.title+'</span>')
+                text: $('<span>'+item.title+'</span>').text(),
               }
             }
           )};
